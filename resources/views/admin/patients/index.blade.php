@@ -90,49 +90,41 @@
 @stack('scripts')
 <script>
     console.log('script loaded');
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('form[id^="delete-form-"]').forEach(function(form) {
-            form.addEventListener('submit', function(e) {
-                e.preventDefault();
+    $(function() {
+        $('form[id^="delete-form-"]').on('submit', function(e) {
+            e.preventDefault();
 
-                if (!confirm('Are you sure you want to delete this hospital?')) return;
+            if (!confirm('Are you sure you want to delete this hospital?')) return;
 
-                let row = form.closest('tr');
-                let token = form.querySelector('input[name="_token"]').value;
+            var $form = $(this);
+            var $row = $form.closest('tr');
+            var token = $form.find('input[name="_token"]').val();
 
-                fetch(form.action, {
-                        method: 'DELETE',
-                        headers: {
-                            'X-CSRF-TOKEN': token,
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'Accept': 'application/json',
-                        },
-                    })
-                    .then(response => {
-                        console.log('Response Status:', response.status);
-                        if (response.ok) {
-                            row.remove();
-                        } else {
-                            response.json().then(data => console.error(data));
-                            alert(
-                                'Failed to delete hospital. Check the console for details.'
-                            );
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Fetch Error:', error);
-                        alert('A network error occurred. Failed to delete hospital.');
-                    });
+            $.ajax({
+                url: $form.attr('action'),
+                type: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': token,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json',
+                },
+                success: function() {
+                    $row.remove();
+                },
+                error: function(xhr) {
+                    console.error(xhr.responseJSON);
+                    alert('Failed to delete hospital. Check the console for details.');
+                }
             });
         });
-    });
 
-    document.getElementById('hospital').addEventListener('change', function() {
-        const selected = this.value;
-        let url = window.location.pathname;
-        if (selected) {
-            url += '?hospital=' + encodeURIComponent(selected);
-        }
-        window.location.href = url;
+        $('#hospital').on('change', function() {
+            var selected = $(this).val();
+            var url = window.location.pathname;
+            if (selected) {
+                url += '?hospital=' + encodeURIComponent(selected);
+            }
+            window.location.href = url;
+        });
     });
 </script>
